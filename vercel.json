@@ -1,6 +1,7 @@
 {
   "version": 2,
   "buildCommand": "vite build",
+  "installCommand": "pnpm install",
   "framework": null,
   "outputDirectory": "dist/public",
   "regions": ["syd1"],
