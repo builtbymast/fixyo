@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `users` ADD `profilePicture` text;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user GkZXX2WupDBZdWa.f227223d4f4f --database Fkv5QaZzumqinqgQfdPum6 --execute ALTER TABLE `users` ADD `profilePicture` text;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1152
+}
