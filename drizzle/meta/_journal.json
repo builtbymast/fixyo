@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1774678201864,
+      "tag": "0000_greedy_tenebrous",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1774678321259,
+      "tag": "0001_moaning_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774762256857,
+      "tag": "0002_great_wildside",
+      "breakpoints": true
+    }
+  ]
+}
