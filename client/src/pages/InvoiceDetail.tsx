@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Pencil, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Pencil, Send, Loader2, Download } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 
@@ -108,6 +108,12 @@ export default function InvoiceDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" asChild className="gap-2">
+            <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" rel="noopener noreferrer">
+              <Download className="h-4 w-4" />
+              Download PDF
+            </a>
+          </Button>
           <Button variant="outline" onClick={handleSendEmail} disabled={sendEmailMutation.isPending} className="gap-2">
             {sendEmailMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

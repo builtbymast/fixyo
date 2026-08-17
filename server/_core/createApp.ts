@@ -6,6 +6,9 @@ import { createContext } from "./context";
 import { storagePut } from "../storage";
 import fileUpload from "express-fileupload";
 import { verifyWebhookSignature, handleWebhookEvent } from "../webhooks";
+import { sdk } from "./sdk";
+import * as db from "../db";
+import { pdfDocumentToBuffer } from "../emailService";
 
 // ─── Simple in-memory rate limiter ───────────────────────────────────────────
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -138,12 +141,86 @@ export function createApp() {
 
   app.get("/api/pdf/quote/:quoteId", async (req, res) => {
     const quoteId = parseInt(req.params.quoteId);
-    res.json({ message: "PDF download endpoint ready", quoteId });
+    if (!quoteId) return res.status(400).json({ error: "Invalid quote id" });
+
+    let user;
+    try {
+      user = await sdk.authenticateRequest(req);
+    } catch {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const quote = await db.getQuote(quoteId);
+      if (!quote) return res.status(404).json({ error: "Quote not found" });
+
+      const business = await db.getBusinessByUserId(user.id);
+      if (!business || business.id !== quote.businessId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const customer = await db.getCustomer(quote.customerId);
+      if (!customer) return res.status(404).json({ error: "Customer not found" });
+
+      const lineItems = await db.getQuoteLineItems(quoteId);
+      const { generateQuotePDF } = await import("../pdf");
+      const pdfDoc = generateQuotePDF(
+        { ...quote, lineItems: lineItems as any },
+        customer,
+        business,
+        quote.quoteNumber
+      );
+      const buffer = await pdfDocumentToBuffer(pdfDoc);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="quote-${quote.quoteNumber}.pdf"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Quote PDF generation error:", error);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
   });
 
   app.get("/api/pdf/invoice/:invoiceId", async (req, res) => {
     const invoiceId = parseInt(req.params.invoiceId);
-    res.json({ message: "PDF download endpoint ready", invoiceId });
+    if (!invoiceId) return res.status(400).json({ error: "Invalid invoice id" });
+
+    let user;
+    try {
+      user = await sdk.authenticateRequest(req);
+    } catch {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const invoice = await db.getInvoice(invoiceId);
+      if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+      const business = await db.getBusinessByUserId(user.id);
+      if (!business || business.id !== invoice.businessId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const customer = await db.getCustomer(invoice.customerId);
+      if (!customer) return res.status(404).json({ error: "Customer not found" });
+
+      const lineItems = await db.getInvoiceLineItems(invoiceId);
+      const { generateInvoicePDF } = await import("../pdf");
+      const pdfDoc = generateInvoicePDF(
+        { ...invoice, lineItems: lineItems as any },
+        customer,
+        business,
+        invoice.invoiceNumber
+      );
+      const buffer = await pdfDocumentToBuffer(pdfDoc);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Invoice PDF generation error:", error);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
   });
 
   app.use(
