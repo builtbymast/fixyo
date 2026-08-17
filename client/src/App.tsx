@@ -27,7 +27,6 @@ const CustomerDetail = lazy(() => import("./pages/CustomerDetail"));
 const CustomerForm = lazy(() => import("./pages/CustomerForm"));
 const AIGenerator = lazy(() => import("./pages/AIGenerator"));
 const SettingsBusiness = lazy(() => import("./pages/SettingsBusiness"));
-const SettingsProfile = lazy(() => import("./pages/SettingsProfile"));
 const SettingsUserProfile = lazy(() => import("./pages/SettingsUserProfile"));
 const SettingsSubscription = lazy(() => import("./pages/SettingsSubscription"));
 
@@ -191,13 +190,6 @@ function Router() {
             {() => (
               <AppLayout>
                 <SettingsBusiness />
-              </AppLayout>
-            )}
-          </Route>
-          <Route path={"/app/settings/profile"}>
-            {() => (
-              <AppLayout>
-                <SettingsProfile />
               </AppLayout>
             )}
           </Route>

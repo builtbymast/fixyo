@@ -5,8 +5,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, ArrowLeft, Upload, X } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import SettingsNav from "@/components/SettingsNav";
 
 export default function SettingsUserProfile() {
   const [, navigate] = useLocation();
@@ -138,32 +139,26 @@ export default function SettingsUserProfile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background py-8 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <SettingsNav />
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/app/settings")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-primary">Your Profile</h1>
-            <p className="text-muted-foreground">
-              Manage your personal information and profile picture
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <SettingsNav />
+      <div>
+        <h1 className="text-3xl font-bold">Your Profile</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your personal information and profile picture
+        </p>
+      </div>
 
+      <div className="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Picture Section */}
           <Card>
@@ -265,7 +260,7 @@ export default function SettingsUserProfile() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/app/settings")}
+              onClick={() => navigate("/app/settings/business")}
               disabled={isSubmitting || isUploadingPicture}
             >
               Cancel

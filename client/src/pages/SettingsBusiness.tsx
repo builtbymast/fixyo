@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, Loader2, Check } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import SettingsNav from "@/components/SettingsNav";
 
 export default function SettingsBusiness() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,8 +129,11 @@ export default function SettingsBusiness() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <SettingsNav />
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
@@ -137,6 +141,7 @@ export default function SettingsBusiness() {
   if (!business) {
     return (
       <div className="space-y-6">
+        <SettingsNav />
         <div>
           <h1 className="text-3xl font-bold">Business Settings</h1>
           <p className="text-muted-foreground mt-1">No business profile found</p>
@@ -147,6 +152,7 @@ export default function SettingsBusiness() {
 
   return (
     <div className="space-y-6">
+      <SettingsNav />
       <div>
         <h1 className="text-3xl font-bold">Business Settings</h1>
         <p className="text-muted-foreground mt-1">
