@@ -6,6 +6,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as db from "./db";
 import { assertBusinessOwnership } from "./_core/ownership";
+import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
   system: systemRouter,
@@ -660,6 +661,58 @@ export const appRouter = router({
 
         return { success: emailSent, message: emailSent ? "Invoice sent successfully" : "Failed to send invoice" };
       }),
+  }),
+
+  // ============ AI GENERATOR ROUTER ============
+  ai: router({
+    generate: protectedProcedure
+      .input(
+        z.object({
+          promptType: z.enum(["job_description", "quote_text", "invoice_notes", "follow_up_email"]),
+          notes: z.string().min(1, "Please describe what you need"),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const business = await db.getBusinessByUserId(ctx.user.id);
+        if (!business) throw new Error("Business not found");
+
+        const systemPrompts: Record<string, string> = {
+          job_description:
+            "You are an assistant for a trades/services business. Turn the tradesperson's rough notes into a clear, professional job description suitable for a work order. 2-4 sentences, no headings, no markdown.",
+          quote_text:
+            "You are an assistant for a trades/services business. Turn the tradesperson's rough notes into professional scope-of-work text for a customer quote. Concise, no headings, no markdown.",
+          invoice_notes:
+            "You are an assistant for a trades/services business. Turn the tradesperson's rough notes into brief, professional notes for an invoice (e.g. work summary, payment terms, thank you). No headings, no markdown.",
+          follow_up_email:
+            "You are an assistant for a trades/services business. Write a short, friendly, professional follow-up email body (no subject line, no greeting placeholders like [Name] left unresolved unless a name is given) based on the tradesperson's notes.",
+        };
+
+        const result = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompts[input.promptType] },
+            { role: "user", content: input.notes },
+          ],
+        });
+
+        const output = result.choices[0]?.message?.content;
+        const text = typeof output === "string" ? output : JSON.stringify(output ?? "");
+
+        await db.logAiPrompt({
+          businessId: business.id,
+          userId: ctx.user.id,
+          promptType: input.promptType,
+          input: input.notes,
+          output: text,
+        });
+
+        return { output: text };
+      }),
+
+    history: protectedProcedure.query(async ({ ctx }) => {
+      const business = await db.getBusinessByUserId(ctx.user.id);
+      if (!business) return [];
+      return db.getAiPromptLogs(business.id);
+    }),
   }),
 
   // ============ DASHBOARD ROUTER ============
