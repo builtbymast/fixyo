@@ -2,6 +2,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
+  User,
   InsertUser,
   users,
   InsertBusiness,
@@ -25,7 +26,6 @@ import {
   InsertSubscription,
   subscriptions,
 } from "../drizzle/schema";
-import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -43,66 +43,6 @@ export async function getDb() {
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onConflictDoUpdate({
-      target: users.openId,
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
-}
-
 export async function getUser(userId: number) {
   const db = await getDb();
   if (!db) {
@@ -114,16 +54,39 @@ export async function getUser(userId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function getUserByOpenId(openId: string) {
+export async function getUserByAuthId(authUserId: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
+  const result = await db.select().from(users).where(eq(users.authUserId, authUserId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertUserByAuthId(user: InsertUser): Promise<User> {
+  if (!user.authUserId) {
+    throw new Error("User authUserId is required for upsert");
+  }
+
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const values: InsertUser = {
+    ...user,
+    lastSignedIn: user.lastSignedIn ?? new Date(),
+  };
+  const { authUserId, ...updateSet } = values;
+
+  await db.insert(users).values(values).onConflictDoUpdate({
+    target: users.authUserId,
+    set: updateSet,
+  });
+
+  const result = await getUserByAuthId(user.authUserId);
+  if (!result) throw new Error("Failed to upsert user");
+  return result;
 }
 
 export async function updateUser(userId: number, data: Partial<InsertUser>) {

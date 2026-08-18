@@ -1,12 +1,11 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { storagePut } from "../storage";
 import fileUpload from "express-fileupload";
 import { verifyWebhookSignature, handleWebhookEvent } from "../webhooks";
-import { sdk } from "./sdk";
+import { authenticateRequest } from "./auth";
 import * as db from "../db";
 import { pdfDocumentToBuffer } from "../emailService";
 
@@ -103,8 +102,6 @@ export function createApp() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   app.use(fileUpload({ limits: { fileSize: 5 * 1024 * 1024 } }));
 
-  registerOAuthRoutes(app);
-
   app.post("/api/upload/photo", async (req, res) => {
     try {
       const file = req.files?.file as any;
@@ -145,7 +142,7 @@ export function createApp() {
 
     let user;
     try {
-      user = await sdk.authenticateRequest(req);
+      user = await authenticateRequest(req);
     } catch {
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -187,7 +184,7 @@ export function createApp() {
 
     let user;
     try {
-      user = await sdk.authenticateRequest(req);
+      user = await authenticateRequest(req);
     } catch {
       return res.status(401).json({ error: "Unauthorized" });
     }

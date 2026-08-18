@@ -1,8 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { getLoginUrl } from "@/const";
 import { useEffect } from "react";
 
 export default function Home() {
@@ -34,7 +33,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="text-2xl font-bold text-primary">FixYo</div>
           <Button asChild>
-            <a href={getLoginUrl()}>Sign In</a>
+            <Link href="/sign-in">Sign In</Link>
           </Button>
         </div>
       </header>
@@ -53,7 +52,7 @@ export default function Home() {
 
           <div className="flex gap-4 justify-center">
             <Button size="lg" asChild>
-              <a href={getLoginUrl()}>Get Started</a>
+              <Link href="/sign-up">Get Started</Link>
             </Button>
             <Button size="lg" variant="outline">
               Learn More
