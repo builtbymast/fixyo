@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import "dotenv/config";
 import { createApp } from "../server/_core/createApp";
 
