@@ -10,8 +10,8 @@ describe("auth.updateProfile", () => {
     expect(typeof db.getUser).toBe("function");
   });
 
-  it("should have getUserByOpenId function exported", () => {
-    expect(typeof db.getUserByOpenId).toBe("function");
+  it("should have getUserByAuthId function exported", () => {
+    expect(typeof db.getUserByAuthId).toBe("function");
   });
 
   it("updateUser should accept userId and data object", async () => {
