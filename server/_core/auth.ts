@@ -22,7 +22,10 @@ export async function authenticateRequest(req: Request): Promise<User> {
   if (!token) throw ForbiddenError("Missing authorization token");
 
   const { data, error } = await getSupabaseAdmin().auth.getUser(token);
-  if (error || !data.user) throw ForbiddenError("Invalid or expired session");
+  if (error || !data.user) {
+    console.warn("[Auth] Token verification failed:", error?.message ?? "no user returned");
+    throw ForbiddenError("Invalid or expired session");
+  }
 
   const authUser = data.user;
   let user = await db.getUserByAuthId(authUser.id);
