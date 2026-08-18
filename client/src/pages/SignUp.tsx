@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ const TRADE_TYPES = [
 
 export default function SignUp() {
   const [, navigate] = useLocation();
+  const { user, isAuthenticated, loading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +30,14 @@ export default function SignUp() {
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+
+  // See SignIn.tsx -- navigate only once useAuth confirms the session,
+  // not immediately after signUp() resolves (races onAuthStateChange).
+  useEffect(() => {
+    if (isAuthenticated && user && !loading) {
+      navigate("/app/dashboard");
+    }
+  }, [isAuthenticated, user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +72,11 @@ export default function SignUp() {
         return;
       }
 
-      if (data.session) {
-        // Email confirmation is disabled on this project -- already signed in.
-        navigate("/app/dashboard");
-        return;
+      if (!data.session) {
+        setCheckEmail(true);
       }
-
-      setCheckEmail(true);
+      // If data.session is set (email confirmation disabled on this
+      // project), the useEffect above navigates once useAuth catches up.
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign up failed");
     } finally {

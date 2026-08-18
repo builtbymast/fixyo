@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,22 @@ import { toast } from "sonner";
 
 export default function SignIn() {
   const [, navigate] = useLocation();
+  const { user, isAuthenticated, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
+
+  // Navigate only once useAuth (the same hook the protected-route guard
+  // reads) has actually confirmed the session -- navigating immediately
+  // after signInWithPassword() resolves races that hook's own
+  // onAuthStateChange listener and can bounce back to /sign-in.
+  useEffect(() => {
+    if (isAuthenticated && user && !loading) {
+      navigate("/app/dashboard");
+    }
+  }, [isAuthenticated, user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,9 +43,8 @@ export default function SignIn() {
       });
       if (error) {
         toast.error(error.message);
-        return;
+        setIsSubmitting(false);
       }
-      navigate("/app/dashboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign in failed");
     } finally {

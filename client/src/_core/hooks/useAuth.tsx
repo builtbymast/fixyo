@@ -1,15 +1,32 @@
 import { supabase } from "@/lib/supabaseClient";
 import { trpc } from "@/lib/trpc";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { User } from "../../../../drizzle/schema";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
-type UseAuthOptions = {
-  redirectOnUnauthenticated?: boolean;
-  redirectPath?: string;
+type AuthState = {
+  user: User | null;
+  loading: boolean;
+  error: unknown;
+  isAuthenticated: boolean;
+  refresh: () => void;
+  logout: () => Promise<void>;
 };
 
-export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = "/sign-in" } =
-    options ?? {};
+const AuthContext = createContext<AuthState | null>(null);
+
+// Single source of truth for auth state: one Supabase session subscription,
+// one trpc.auth.me query. Every useAuth() call reads the SAME state object,
+// so there's no risk of two independent listeners (e.g. one on the sign-in
+// page, one in the route guard) updating on different render ticks.
+export function AuthProvider({ children }: { children: ReactNode }) {
   const utils = trpc.useUtils();
   const [sessionLoading, setSessionLoading] = useState(true);
   const [hasSession, setHasSession] = useState(false);
@@ -22,6 +39,7 @@ export function useAuth(options?: UseAuthOptions) {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session);
+      setSessionLoading(false);
       utils.auth.me.invalidate();
     });
 
@@ -42,14 +60,32 @@ export function useAuth(options?: UseAuthOptions) {
     await logoutMutation.mutateAsync().catch(() => {});
   }, [logoutMutation, utils]);
 
-  const state = useMemo(() => {
+  const state = useMemo<AuthState>(() => {
     return {
       user: hasSession ? meQuery.data ?? null : null,
-      loading: sessionLoading || (hasSession && meQuery.isLoading),
+      loading: sessionLoading || (hasSession && meQuery.isPending),
       error: meQuery.error ?? null,
       isAuthenticated: hasSession && Boolean(meQuery.data),
+      refresh: () => meQuery.refetch(),
+      logout,
     };
-  }, [hasSession, sessionLoading, meQuery.data, meQuery.isLoading, meQuery.error]);
+  }, [hasSession, sessionLoading, meQuery.data, meQuery.isPending, meQuery.error, logout]);
+
+  return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>;
+}
+
+type UseAuthOptions = {
+  redirectOnUnauthenticated?: boolean;
+  redirectPath?: string;
+};
+
+export function useAuth(options?: UseAuthOptions) {
+  const { redirectOnUnauthenticated = false, redirectPath = "/sign-in" } =
+    options ?? {};
+  const state = useContext(AuthContext);
+  if (!state) {
+    throw new Error("useAuth() must be used within <AuthProvider>");
+  }
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
@@ -61,9 +97,5 @@ export function useAuth(options?: UseAuthOptions) {
     window.location.href = redirectPath;
   }, [redirectOnUnauthenticated, redirectPath, state.loading, state.user]);
 
-  return {
-    ...state,
-    refresh: () => meQuery.refetch(),
-    logout,
-  };
+  return state;
 }

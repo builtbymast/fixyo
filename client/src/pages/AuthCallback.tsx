@@ -1,37 +1,29 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 // Landing page for Google OAuth and magic-link redirects. The Supabase
 // client picks up the session from the URL automatically
-// (detectSessionInUrl), we just wait for it and move on.
+// (detectSessionInUrl). We wait for useAuth -- the same hook the
+// protected-route guard reads -- to confirm the session before navigating,
+// rather than navigating off a locally-owned listener that could race it.
 export default function AuthCallback() {
   const [, navigate] = useLocation();
+  const { user, isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    let cancelled = false;
+    if (isAuthenticated && user && !loading) {
+      navigate("/app/dashboard");
+    }
+  }, [isAuthenticated, user, loading, navigate]);
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (cancelled) return;
-      if (session) navigate("/app/dashboard");
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      if (data.session) navigate("/app/dashboard");
-    });
-
+  useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!cancelled) navigate("/sign-in");
+      if (!isAuthenticated) navigate("/sign-in");
     }, 8000);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-      subscription.subscription.unsubscribe();
-    };
-  }, [navigate]);
+    return () => clearTimeout(timeout);
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
