@@ -11,12 +11,18 @@ import { pdfDocumentToBuffer } from "../emailService";
 
 // ─── Simple in-memory rate limiter ───────────────────────────────────────────
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-setInterval(() => {
+// .unref() so this background timer never keeps the process alive by itself --
+// on a serverless runtime (Vercel Functions), an un-ref'd module-scope timer
+// can interfere with how the platform freezes/manages the container between
+// invocations, since Node considers the event loop "busy" for as long as any
+// ref'd timer is pending.
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   rateLimitStore.forEach((record, key) => {
     if (record.resetAt < now) rateLimitStore.delete(key);
   });
 }, 5 * 60 * 1000);
+cleanupTimer.unref();
 
 function rateLimiter(maxRequests: number, windowMs: number) {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
