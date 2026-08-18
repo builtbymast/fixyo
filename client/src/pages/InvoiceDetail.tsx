@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { openAuthedDownload } from "@/lib/authedDownload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,11 +109,13 @@ export default function InvoiceDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild className="gap-2">
-            <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4" />
-              Download PDF
-            </a>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => openAuthedDownload(`/api/pdf/invoice/${invoice.id}`)}
+          >
+            <Download className="h-4 w-4" />
+            Download PDF
           </Button>
           <Button variant="outline" onClick={handleSendEmail} disabled={sendEmailMutation.isPending} className="gap-2">
             {sendEmailMutation.isPending ? (

@@ -1,13 +1,18 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Route, Switch } from "wouter";
-import { lazy, Suspense } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { lazy, Suspense, useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useAuth } from "./_core/hooks/useAuth";
 
 const Home = lazy(() => import("./pages/Home"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const SignIn = lazy(() => import("./pages/SignIn"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AppLayout = lazy(() => import("./pages/AppLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -32,6 +37,14 @@ const SettingsSubscription = lazy(() => import("./pages/SettingsSubscription"));
 
 function Router() {
   const { user, loading } = useAuth();
+  const [location, navigate] = useLocation();
+
+  const isAppRoute = location.startsWith("/app");
+
+  useEffect(() => {
+    if (loading) return;
+    if (isAppRoute && !user) navigate("/sign-in");
+  }, [loading, isAppRoute, user, navigate]);
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -41,6 +54,11 @@ function Router() {
     <Switch>
       {/* Public Routes */}
       <Route path={"/"} component={Home} />
+      <Route path={"/sign-up"} component={SignUp} />
+      <Route path={"/sign-in"} component={SignIn} />
+      <Route path={"/forgot-password"} component={ForgotPassword} />
+      <Route path={"/reset-password"} component={ResetPassword} />
+      <Route path={"/auth/callback"} component={AuthCallback} />
       <Route path={"/portal/quote/:token"} component={PublicQuoteView} />
       <Route path={"/portal/invoice/:token"} component={PublicInvoiceView} />
 
