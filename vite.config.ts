@@ -150,10 +150,6 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-console.log(
-  `[env-debug] VITE_SUPABASE_URL present: ${Boolean(process.env.VITE_SUPABASE_URL)}, VERCEL_ENV: ${process.env.VERCEL_ENV}, VERCEL_GIT_COMMIT_REF: ${process.env.VERCEL_GIT_COMMIT_REF}`
-);
-
 const isProduction = process.env.NODE_ENV === "production";
 
 const plugins = [
