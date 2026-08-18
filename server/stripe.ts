@@ -1,8 +1,19 @@
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 
-export const stripe = new Stripe(ENV.stripeSecretKey || "");
-// Stripe API version is managed by the SDK
+let _stripe: Stripe | null = null;
+
+// Lazily construct the client so a missing STRIPE_SECRET_KEY doesn't crash
+// the whole process at import time — it only throws when Stripe is actually used.
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!ENV.stripeSecretKey) {
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+    _stripe = new Stripe(ENV.stripeSecretKey);
+  }
+  return _stripe;
+}
 
 export async function createInvoiceCheckoutSession(
   invoiceId: number,
@@ -13,7 +24,7 @@ export async function createInvoiceCheckoutSession(
   origin: string
 ) {
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
@@ -51,7 +62,7 @@ export async function createInvoiceCheckoutSession(
 
 export async function getCheckoutSession(sessionId: string) {
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
     return session;
   } catch (error) {
     console.error("Error retrieving checkout session:", error);
@@ -61,7 +72,7 @@ export async function getCheckoutSession(sessionId: string) {
 
 export async function handlePaymentIntentSucceeded(paymentIntentId: string) {
   try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
     return paymentIntent;
   } catch (error) {
     console.error("Error retrieving payment intent:", error);

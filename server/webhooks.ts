@@ -1,9 +1,7 @@
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
-
-const stripe = new Stripe(ENV.stripeSecretKey);
-// Note: apiVersion is set via environment or Stripe account settings
+import { getStripe } from "./stripe";
 
 /**
  * Verify Stripe webhook signature
@@ -14,7 +12,7 @@ export function verifyWebhookSignature(
   signature: string
 ): Stripe.Event | null {
   try {
-    const event = stripe.webhooks.constructEvent(
+    const event = getStripe().webhooks.constructEvent(
       body,
       signature,
       ENV.stripeWebhookSecret
