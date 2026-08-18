@@ -1,5 +1,11 @@
+// DATABASE_URL is our own convention (used locally and is what
+// drizzle.config.ts expects). POSTGRES_URL is what Vercel's Supabase
+// Marketplace integration injects automatically -- prefer our own name
+// when both are set (e.g. local dev), fall back to Vercel's.
+const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? "";
+
 export const ENV = {
-  databaseUrl: process.env.DATABASE_URL ?? "",
+  databaseUrl,
   supabaseUrl: process.env.VITE_SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   isProduction: process.env.NODE_ENV === "production",

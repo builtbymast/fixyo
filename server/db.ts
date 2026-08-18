@@ -26,14 +26,21 @@ import {
   InsertSubscription,
   subscriptions,
 } from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (!_db && ENV.databaseUrl) {
     try {
-      const client = postgres(process.env.DATABASE_URL);
+      // Log which env var + host we actually connected to -- a wrong or
+      // missing DB should be loud, never a silent empty-result failure.
+      const source = process.env.DATABASE_URL ? "DATABASE_URL" : "POSTGRES_URL";
+      const host = safeHost(ENV.databaseUrl);
+      console.log(`[Database] Connecting via ${source} -> ${host}`);
+
+      const client = postgres(ENV.databaseUrl);
       _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
@@ -41,6 +48,15 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+function safeHost(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    return `${url.hostname}:${url.port || "5432"}${url.pathname}`;
+  } catch {
+    return "(unparseable connection string)";
+  }
 }
 
 export async function getUser(userId: number) {
