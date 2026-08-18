@@ -5,6 +5,7 @@ import {
   serial,
   text,
   timestamp,
+  uuid,
   varchar,
   decimal,
 } from "drizzle-orm/pg-core";
@@ -56,12 +57,13 @@ export const users = pgTable("users", {
    * Use this for relations between tables.
    */
   id: serial("id").primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  /** Supabase Auth user id (auth.users.id). Identity source of truth. */
+  authUserId: uuid("authUserId").notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
-  profilePicture: text("profilePicture"), // URL to profile picture in S3
-  loginMethod: varchar("loginMethod", { length: 64 }),
+  profilePicture: text("profilePicture"), // URL to avatar (e.g. from Google OAuth)
+  loginMethod: varchar("loginMethod", { length: 64 }), // 'email' | 'google'
+
   role: roleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),

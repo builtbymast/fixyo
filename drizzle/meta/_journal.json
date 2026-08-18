@@ -15,6 +15,20 @@
       "when": 1787017603419,
       "tag": "0001_updated_at_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787018700837,
+      "tag": "0002_real_callisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787018738459,
+      "tag": "0003_natural_invaders",
+      "breakpoints": true
     }
   ]
 }
