@@ -7,6 +7,13 @@ export const getLoginUrl = () => {
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
   const state = btoa(redirectUri);
 
+  if (!oauthPortalUrl || !appId) {
+    console.error(
+      "Sign-in is not configured: VITE_OAUTH_PORTAL_URL and/or VITE_APP_ID are missing from this environment."
+    );
+    return "#";
+  }
+
   const url = new URL(`${oauthPortalUrl}/app-auth`);
   url.searchParams.set("appId", appId);
   url.searchParams.set("redirectUri", redirectUri);
