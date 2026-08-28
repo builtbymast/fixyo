@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "vite build",
+  "buildCommand": "vite build && esbuild server/_core/createApp.ts --platform=node --bundle --packages=external --format=esm --outfile=dist/server-bundle.js",
   "installCommand": "pnpm install",
   "framework": null,
   "outputDirectory": "dist/public",
