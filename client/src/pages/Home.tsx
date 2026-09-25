@@ -99,7 +99,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF7]">
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#FAFAF7]">
         <Loader2 className="h-8 w-8 animate-spin text-[#1B2B4B]" />
       </div>
     );
@@ -128,7 +128,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAFAF7] overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#FAFAF7] overflow-x-hidden">
 
       {/* ─── STICKY HEADER ─────────────────────────────────────── */}
       <motion.header
