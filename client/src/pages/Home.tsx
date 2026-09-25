@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import {
   Loader2, Briefcase, FileText, DollarSign, Users, Zap, BarChart3,
-  CheckCircle, Star, ArrowRight, Menu, X,
+  CheckCircle, ArrowRight, Menu, X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -120,11 +120,6 @@ export default function Home() {
     { n: "03", title: "Start winning jobs", desc: "Quote, invoice, and get paid — from your phone or desktop, anywhere." },
   ];
 
-  const testimonials = [
-    { name: "Dave Hartley", role: "Electrician, Brisbane", text: "FixYo saved me hours every week. I quote on-site now and customers sign off instantly. Getting paid has never been easier.", stars: 5 },
-    { name: "Sarah Mitchell", role: "Plumber, Sydney", text: "Finally a tool built for tradies, not accountants. The AI quote generator is unreal — I look way more professional now.", stars: 5 },
-    { name: "Mark Okonkwo", role: "Builder, Melbourne", text: "Went from chasing payments for weeks to getting paid same-day. The Stripe integration is seamless.", stars: 5 },
-  ];
 
   const plans = [
     { name: "Free", price: 0, desc: "Great for getting started", feats: ["5 jobs/month", "3 quotes/month", "3 invoices/month", "Customer management"], cta: "Start Free", hot: false },
@@ -312,15 +307,8 @@ export default function Home() {
                 transition={{ duration: 0.7, delay: 0.5 }}
                 className="mt-8 flex items-center gap-3 justify-center lg:justify-start"
               >
-                <div className="flex -space-x-2.5">
-                  {["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444"].map((bg, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#1B2B4B] flex items-center justify-center text-[10px] font-bold text-white" style={{ background: bg }}>
-                      {["D", "S", "M", "J", "R"][i]}
-                    </div>
-                  ))}
-                </div>
                 <span className="text-sm text-slate-300">
-                  <span className="text-amber-400 font-bold">2,000+</span> tradies trust FixYo
+                  <span className="text-amber-400 font-bold">Early access</span> — built for Australian trades
                 </span>
               </motion.div>
             </div>
@@ -439,15 +427,13 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { to: 2000, suffix: "+", label: "Active Tradies" },
-              { to: 10, prefix: "$", suffix: "M+", label: "Invoiced to Date" },
-              { to: 98, suffix: "%", label: "Satisfaction Rate" },
-              { to: 4, suffix: ".9 ★", label: "Average Rating" },
+              { title: "Quote on site", label: "Before you leave the job" },
+              { title: "Signed on the spot", label: "Customers approve on their phone" },
+              { title: "Paid by Stripe", label: "Quote to invoice in one flow" },
+              { title: "Built in Australia", label: "For Australian trades" },
             ].map((s, i) => (
               <FadeUp key={i} delay={i * 0.08}>
-                <div className="text-3xl font-black text-[#1B2B4B]">
-                  <Counter to={s.to} prefix={s.prefix ?? ""} suffix={s.suffix} />
-                </div>
+                <div className="text-lg font-black text-[#1B2B4B]">{s.title}</div>
                 <div className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wide">{s.label}</div>
               </FadeUp>
             ))}
@@ -530,35 +516,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── TESTIMONIALS ───────────────────────────────────────── */}
-      <section className="py-28 bg-[#FAFAF7]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <FadeUp className="text-center mb-16">
-            <span className="text-xs font-black uppercase tracking-widest text-amber-600 mb-3 block">Testimonials</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1B2B4B]">Tradies love FixYo</h2>
-          </FadeUp>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <FadeUp key={i} delay={i * 0.1}>
-                <div className="h-full p-7 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.stars }).map((_, s) => (
-                      <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">"{t.text}"</p>
-                  <div>
-                    <div className="font-bold text-sm text-[#1B2B4B]">{t.name}</div>
-                    <div className="text-xs text-slate-400">{t.role}</div>
-                  </div>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ─── PRICING ────────────────────────────────────────────── */}
       <section id="pricing" className="py-28 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -623,7 +580,7 @@ export default function Home() {
               Ready to take control of your trade business?
             </h2>
             <p className="text-amber-100 mb-8 text-lg max-w-xl mx-auto">
-              Join 2,000+ Australian tradies. Start for free — no credit card required.
+              Start for free — no credit card required.
             </p>
             <Link
               href="/sign-up"
